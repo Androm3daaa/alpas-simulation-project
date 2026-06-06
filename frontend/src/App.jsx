@@ -78,11 +78,16 @@ const App = () => {
   const maxReplayTime =
     sharedSim?.maxTime ?? sharedSim?.trajectoryHistory?.at(-1)?.t ?? 0;
 
-  useEffect(() => {
-    if (isAuthenticated && currentScreen !== 'app') {
-      setCurrentScreen('app');
-    }
-  }, [isAuthenticated, currentScreen]);
+  // Always start on the landing page for a fresh experience.
+  // Previously this effect would auto-skip to the app if you were logged in
+  // from a previous "Try Demo" session (stored in localStorage).
+  // We removed the auto-redirect so you always see the nice landing hero first.
+  // You can still quickly enter via the "Try Demo" button on the landing page.
+  // useEffect(() => {
+  //   if (isAuthenticated && currentScreen !== 'app') {
+  //     setCurrentScreen('app');
+  //   }
+  // }, [isAuthenticated, currentScreen]);
 
   const handleGetStarted = () => setCurrentScreen('auth');
   const handleTryDemo = () => {

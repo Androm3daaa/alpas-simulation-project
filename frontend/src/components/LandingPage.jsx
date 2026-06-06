@@ -25,7 +25,7 @@ const LANDING_CARD =
   'hover:border-[#ff7a4d]/28 hover:shadow-[0_16px_48px_rgba(255,77,28,0.12),inset_0_1px_0_rgba(255,255,255,0.09)] ' +
   'transition-all duration-300 hover:-translate-y-0.5';
 
-const LandingPage = ({ onGetStarted }) => {
+const LandingPage = ({ onGetStarted, onTryDemo }) => {
   const features = [
     {
       icon: <LayoutDashboard className="w-7 h-7" />,
@@ -240,6 +240,14 @@ const LandingPage = ({ onGetStarted }) => {
               >
                 See how it works
               </button>
+              {onTryDemo && (
+                <button 
+                  onClick={onTryDemo}
+                  className="px-6 py-4 border border-[#ff7a4d]/40 hover:bg-[#ff4d1c]/10 hover:border-[#ff7a4d]/60 text-[#ff9a6c] rounded-2xl font-medium text-base transition-all w-full sm:w-auto flex items-center gap-2"
+                >
+                  <PlayCircle size={18} /> Try Demo instantly
+                </button>
+              )}
             </div>
 
             <div className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 text-xs text-[#64748b]">
