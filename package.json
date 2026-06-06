@@ -1,0 +1,16 @@
+{
+  "name": "alpas-simulation-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ALPAS — School Fire & Evacuation Simulation (frontend + backend)",
+  "scripts": {
+    "dev": "concurrently --kill-others -n backend,frontend -c blue,green \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "cd backend && python3 -m uvicorn main:app --reload --port 8000",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "preview:frontend": "cd frontend && npm run preview"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

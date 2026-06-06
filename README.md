@@ -57,25 +57,40 @@ school-fire-sim/
 - JuPedSim (pip)
 - (Recommended) Ollama running locally for free AI Analyst
 
-### Frontend
+### One-command development (recommended)
+
+From the project root, start **both** backend and frontend together:
 
 ```bash
-cd frontend
-npm install
 npm run dev
 ```
 
-### Backend
+- Backend logs appear prefixed in **blue**
+- Frontend (Vite) logs appear prefixed in **green**
+- Frontend will be available at **http://localhost:5173**
+- Press `Ctrl+C` to stop both servers at once
 
+This uses `concurrently` under the hood (installed at the root).
+
+### Manual start (if you prefer separate terminals)
+
+**Backend** (in one terminal):
 ```bash
 cd backend
-python -m venv .venv
-source .venv/bin/activate   # or .venv\Scripts\activate on Windows
-pip install -r requirements.txt   # (create this from current working deps)
-uvicorn main:app --reload --port 8000
+python3 -m uvicorn main:app --reload --port 8000
 ```
 
-Create `backend/.env` from `.env.example` and add your LLM API keys (DeepSeek recommended for speed/quality).
+**Frontend** (in another terminal):
+```bash
+cd frontend
+npm run dev
+```
+
+> The root `npm run dev` command is the easiest way during active development.
+
+### Environment
+
+Make sure you have a `backend/.env` file (copy from `backend/.env.example` and fill in your API keys, especially DeepSeek or run Ollama locally for the AI Analyst).
 
 ### First Simulation
 
