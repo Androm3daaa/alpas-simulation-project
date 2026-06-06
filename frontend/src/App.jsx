@@ -90,16 +90,6 @@ const App = () => {
   // }, [isAuthenticated, currentScreen]);
 
   const handleGetStarted = () => setCurrentScreen('auth');
-  const handleTryDemo = () => {
-    ensureDefaultAccounts();
-    const result = login('demo@alpas.edu', 'demo123');
-    if (result.success) {
-      setCurrentScreen('app');
-    } else {
-      setCurrentScreen('auth');
-    }
-  };
-
   // Direct one-click admin access (for researchers / admins testing)
   const handleLoginAsAdmin = () => {
     ensureDefaultAccounts();
@@ -121,7 +111,6 @@ const App = () => {
     return (
       <LandingPage 
         onGetStarted={handleGetStarted} 
-        onTryDemo={handleTryDemo} 
         onLoginAsAdmin={handleLoginAsAdmin}
       />
     );
