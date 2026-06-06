@@ -25,7 +25,7 @@ It combines a fast in-browser analytical engine with high-fidelity NIST FDS + Ju
   - Supports: DeepSeek (recommended), local Ollama (free & unlimited), Gemini, Groq, xAI/Grok.
 
 - **Mitigation Comparison**
-  - One-click before/after analysis of safety improvements.
+  - One-click before/after analysis of safety improvements (the app now starts with mitigations **off** by default for a clean baseline).
 
 ## Project Structure
 
@@ -94,13 +94,19 @@ Make sure you have a `backend/.env` file (copy from `backend/.env.example` and f
 
 ### First Simulation
 
-1. Open the app → Try Demo or create account.
-2. Configure scenario on the Dashboard.
-3. Run **Quick** analysis (instant) or trigger a full FDS + JuPedSim run.
-4. Explore results in charts, 3D, Run History, and talk to the AI Analyst.
+1. Start the app with `npm run dev` (from project root).
+2. On the landing page, use the top navigation **"Get Started"** or **"Login"** buttons (or the big orange "Launch ALPAS Simulator" button) to reach the authentication screen.
+3. On the auth screen you can:
+   - Click the prominent **"Login as Admin (admin / admin)"** button for instant access, or
+   - Create a new account.
+4. Configure your scenario on the Dashboard (defaults: **slow** growth rate + **no mitigations** enabled).
+5. Run **Quick** analysis (instant) or trigger a full FDS + JuPedSim run.
+6. Explore results in charts, 3D, Run History, and talk to the AI Analyst.
 
 ## Important Notes
 
+- The app now starts with **slow** fire growth and **no mitigations** enabled by default. This provides a clean baseline for comparing mitigation strategies.
+- Fire location now supports proper per-floor distinction (e.g. "Corridor · 3rd Floor" vs "Corridor · 2nd Floor").
 - The FDS backend currently uses simplified geometry (documented in every analysis). Full school walls/rooms/stairs are future work.
 - The 3D model is a reference/visual aid. Agent positions in 3D are mapped from the 2D analytical engine or JuPedSim results.
 
