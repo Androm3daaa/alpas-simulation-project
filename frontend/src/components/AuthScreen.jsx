@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Flame, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
-const AuthScreen = ({ onBackToLanding }) => {
+const AuthScreen = ({ onBackToLanding, onAuthSuccess }) => {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,6 +29,9 @@ const AuthScreen = ({ onBackToLanding }) => {
         const result = login(email, password);
         if (!result.success) {
           setError(result.error);
+        } else {
+          // Successfully logged in (including as admin) — transition to the main app
+          onAuthSuccess?.();
         }
       } else {
         if (!name.trim()) {
@@ -39,6 +42,8 @@ const AuthScreen = ({ onBackToLanding }) => {
         const result = register(name, email, password, institution);
         if (!result.success) {
           setError(result.error);
+        } else {
+          onAuthSuccess?.();
         }
       }
     } catch (err) {

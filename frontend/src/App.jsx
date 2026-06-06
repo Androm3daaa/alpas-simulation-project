@@ -100,6 +100,17 @@ const App = () => {
     }
   };
 
+  // Direct one-click admin access (for researchers / admins testing)
+  const handleLoginAsAdmin = () => {
+    ensureDefaultAccounts();
+    const result = login('admin', 'admin');
+    if (result.success) {
+      setCurrentScreen('app');
+    } else {
+      setCurrentScreen('auth');
+    }
+  };
+
   const handleLogout = () => {
     logout();
     setCurrentScreen('landing');
@@ -107,11 +118,22 @@ const App = () => {
   };
 
   if (currentScreen === 'landing') {
-    return <LandingPage onGetStarted={handleGetStarted} onTryDemo={handleTryDemo} />;
+    return (
+      <LandingPage 
+        onGetStarted={handleGetStarted} 
+        onTryDemo={handleTryDemo} 
+        onLoginAsAdmin={handleLoginAsAdmin}
+      />
+    );
   }
 
   if (currentScreen === 'auth') {
-    return <AuthScreen onBackToLanding={() => setCurrentScreen('landing')} />;
+    return (
+      <AuthScreen 
+        onBackToLanding={() => setCurrentScreen('landing')} 
+        onAuthSuccess={() => setCurrentScreen('app')}
+      />
+    );
   }
 
   const buildingAlign = calibration?.box ? calibration : getDefaultCalibration();
