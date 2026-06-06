@@ -14,6 +14,7 @@ import {
   OCCUPANT_ROOM_OPTION_GROUPS,
   formatOccupantZoneLabel,
   FIRE_LOCATION_OPTION_GROUPS,
+  normalizeFireLocation,
 } from '../lib/alpasEngine';
 import ScenarioPicker from './ScenarioPicker';
 
@@ -130,7 +131,7 @@ export default function ScenarioSidebar({
                   hint="Room, CR, or corridor"
                   icon={Flame}
                   value={params.fireLocation}
-                  onChange={(v) => updateParam('fireLocation', v)}
+                  onChange={(v) => updateParam('fireLocation', normalizeFireLocation(v, occupantRoom))}
                   groups={FIRE_LOCATION_OPTION_GROUPS}
                   openPickerId={openPickerId}
                   setOpenPickerId={setOpenPickerId}

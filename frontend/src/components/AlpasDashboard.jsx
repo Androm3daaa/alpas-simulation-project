@@ -225,7 +225,7 @@ const AlpasDashboard = ({ onPushTo3D, sharedSim, onClearSharedSim, onSwitchToLog
   const resetSimulation = () => {
     clearLoadedRun();
     setParams({ ...DEFAULT_PARAMS });
-    setStatusMsg('Scenario reset — 60 in Room 304, corridor fire, mitigations on');
+    setStatusMsg('Scenario reset — 60 in Room 304, corridor fire, slow growth, no mitigations');
   };
 
   async function fetchAnalysis(simId) {
