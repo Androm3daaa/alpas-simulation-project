@@ -1,0 +1,94 @@
+# ===========================================
+# ALPAS - School Fire & Evacuation Simulation
+# .gitignore
+# ===========================================
+
+# -------------------------
+# Node.js / Frontend
+# -------------------------
+node_modules/
+frontend/node_modules/
+
+# Build output
+frontend/dist/
+dist/
+
+# Import / temp work
+.import-work/
+frontend/.import-work/
+
+# Package manager (keep package-lock.json for reproducibility)
+# npm-debug.log*
+
+# -------------------------
+# Python / Backend
+# -------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.virtualenv/
+
+# -------------------------
+# Logs & Runtime Data
+# -------------------------
+*.log
+backend/*.log
+backend/server.log
+backend/simulation.log
+backend/uvicorn.log
+
+# Simulation runs (generated artifacts, large CSVs, logs)
+simulations/
+simulations/**
+
+# -------------------------
+# Environment & Secrets
+# -------------------------
+.env
+.env.local
+.env.*.local
+*.env
+backend/.env
+frontend/.env
+
+# -------------------------
+# IDE / Editor / OS
+# -------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# -------------------------
+# Misc / Large or generated
+# -------------------------
+# The root node_modules exists only for the docx generation script.
+# We ignore it so the web app repo stays clean.
+# To run the doc generator: cd /path/to/project && npm install docx --prefix .  (or move the script)
+
+# Optional: uncomment if you want to ignore the generated docx
+# docs/ALPAS_Project_Documentation.docx

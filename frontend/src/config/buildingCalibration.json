@@ -1,0 +1,8 @@
+{
+  "modelOffsetY": 0,
+  "agentBaseY": 0.35,
+  "sceneScale": 1.0,
+  "floorHeight": 5.5,
+  "storeyCount": 4,
+  "note": "GLB footprint alignment: sim ny=0 maps to +Z of mesh; Y storeys from footprint height"
+}

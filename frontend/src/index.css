@@ -1,0 +1,382 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+/* Prevent fixed nav from covering anchored sections when using header navigation */
+#features,
+#how-it-works,
+#mission {
+  scroll-margin-top: 90px;
+}
+
+canvas {
+  display: block;
+}
+
+/* Premium dark scrollbar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #475569 #1a1f2e;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #1a1f2e;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Even thinner variant for subtle areas */
+.scrollbar-ultra-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #1a1f2e;
+}
+
+.scrollbar-ultra-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-ultra-thin::-webkit-scrollbar-track {
+  background: #1a1f2e;
+}
+
+.scrollbar-ultra-thin::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 2px;
+}
+
+.scrollbar-ultra-thin::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Scenario sidebar — polished controls */
+.scenario-control-card {
+  border-radius: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(17, 20, 24, 0.5) 100%);
+  padding: 0.875rem 1rem;
+}
+
+.scenario-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.03);
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.scenario-icon-btn:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.scenario-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #ff4d1c 0%,
+    #ff6a3d var(--range-pct, 50%),
+    #1a2234 var(--range-pct, 50%),
+    #1a2234 100%
+  );
+  outline: none;
+  cursor: pointer;
+}
+
+.scenario-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #ff4d1c;
+  box-shadow: 0 0 0 3px rgba(255, 77, 28, 0.25), 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: grab;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.scenario-range::-webkit-slider-thumb:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 4px rgba(255, 77, 28, 0.35), 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.scenario-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #ff4d1c;
+  box-shadow: 0 0 0 3px rgba(255, 77, 28, 0.25);
+  cursor: grab;
+}
+
+.scenario-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: #1a2234;
+}
+
+.scenario-run-btn {
+  color: #fff;
+  background: linear-gradient(135deg, #ff5a1f 0%, #ff4d1c 45%, #e8430f 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 4px 14px rgba(255, 77, 28, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.scenario-run-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+    0 6px 20px rgba(255, 77, 28, 0.45);
+}
+
+.scenario-run-btn:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+/* Configurable dropdown — clear affordance */
+.scenario-select-wrap {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.scenario-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: #0a0e14;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
+  padding: 0.625rem 2.25rem 0.625rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  color: #f1f5f9;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+  color-scheme: dark;
+}
+
+.scenario-select--with-icon {
+  padding-left: 2.125rem;
+}
+
+.scenario-select:hover {
+  border-color: rgba(255, 122, 77, 0.45);
+  background-color: #121820;
+  box-shadow: 0 0 0 1px rgba(255, 77, 28, 0.08);
+}
+
+.scenario-select:focus {
+  outline: none;
+  border-color: rgba(255, 77, 28, 0.55);
+  box-shadow: 0 0 0 3px rgba(255, 77, 28, 0.2);
+}
+
+.scenario-select-wrap:hover .scenario-select-chevron,
+.scenario-select:focus + .scenario-select-chevron,
+.scenario-select-wrap:has(.scenario-select:focus) .scenario-select-chevron {
+  color: #ff9a6c;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.scenario-select-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  z-index: 1;
+  transition: color 0.15s ease;
+}
+
+.scenario-select-wrap:hover .scenario-select-icon {
+  color: #ff9a6c;
+}
+
+.scenario-select-chevron {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  z-index: 1;
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
+  pointer-events: none;
+}
+
+/* Custom scenario picker (replaces native select menus) */
+.scenario-picker {
+  position: relative;
+}
+
+.scenario-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, #0a0e14 100%);
+  padding: 0.625rem 2rem 0.625rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  color: #f1f5f9;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.scenario-picker-trigger--icon {
+  padding-left: 2.125rem;
+}
+
+.scenario-picker-trigger-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+  transition: color 0.15s ease;
+}
+
+.scenario-picker-trigger {
+  position: relative;
+}
+
+.scenario-picker-trigger:hover {
+  border-color: rgba(255, 122, 77, 0.45);
+  background-color: #121820;
+  box-shadow: 0 0 0 1px rgba(255, 77, 28, 0.08);
+}
+
+.scenario-picker-trigger:hover .scenario-picker-trigger-icon {
+  color: #ff9a6c;
+}
+
+.scenario-picker-trigger--open,
+.scenario-picker-trigger:focus-visible {
+  outline: none;
+  border-color: rgba(255, 77, 28, 0.55);
+  box-shadow: 0 0 0 3px rgba(255, 77, 28, 0.18);
+}
+
+.scenario-picker-trigger--open .scenario-picker-trigger-icon,
+.scenario-picker-trigger--open .scenario-picker-chevron {
+  color: #ff9a6c;
+}
+
+.scenario-picker-chevron {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  transition:
+    color 0.15s ease,
+    transform 0.2s ease;
+}
+
+.scenario-picker-chevron--open {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.scenario-picker-menu {
+  z-index: 200;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 77, 28, 0.22);
+  background: #0d1118;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  padding: 0.35rem 0;
+  animation: scenario-picker-in 0.14s ease-out;
+}
+
+@keyframes scenario-picker-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scenario-picker-group + .scenario-picker-group {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 0.2rem;
+  padding-top: 0.2rem;
+}
+
+.scenario-picker-group-label {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0.4rem 0.75rem 0.25rem;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+  background: linear-gradient(180deg, #121820 85%, rgba(18, 24, 32, 0.92) 100%);
+}
+
+.scenario-picker-option {
+  color: #cbd5e1;
+  border-left: 2px solid transparent;
+}
+
+.scenario-picker-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f1f5f9;
+}
+
+.scenario-picker-option--selected {
+  background: rgba(255, 77, 28, 0.12);
+  color: #ffc9b0;
+  border-left-color: #ff4d1c;
+}
