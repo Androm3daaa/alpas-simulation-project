@@ -41,7 +41,7 @@ class ErrorBoundary extends React.Component {
 
 
 const App = () => {
-  const { user, isAuthenticated, logout, login, ensureDefaultAccounts } = useAuth();
+  const { user, isAuthenticated, logout, login } = useAuth();
   const [currentScreen, setCurrentScreen] = useState('landing');
   const [activeView, setActiveView] = useState('dashboard');
   const [showAbout, setShowAbout] = useState(false);
@@ -90,16 +90,6 @@ const App = () => {
   // }, [isAuthenticated, currentScreen]);
 
   const handleGetStarted = () => setCurrentScreen('auth');
-  // Direct one-click admin access (for researchers / admins testing)
-  const handleLoginAsAdmin = () => {
-    ensureDefaultAccounts();
-    const result = login('admin', 'admin');
-    if (result.success) {
-      setCurrentScreen('app');
-    } else {
-      setCurrentScreen('auth');
-    }
-  };
 
   const handleLogout = () => {
     logout();
@@ -108,12 +98,7 @@ const App = () => {
   };
 
   if (currentScreen === 'landing') {
-    return (
-      <LandingPage 
-        onGetStarted={handleGetStarted} 
-        onLoginAsAdmin={handleLoginAsAdmin}
-      />
-    );
+    return <LandingPage onGetStarted={handleGetStarted} />;
   }
 
   if (currentScreen === 'auth') {

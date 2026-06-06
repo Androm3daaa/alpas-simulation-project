@@ -25,7 +25,7 @@ const LANDING_CARD =
   'hover:border-[#ff7a4d]/28 hover:shadow-[0_16px_48px_rgba(255,77,28,0.12),inset_0_1px_0_rgba(255,255,255,0.09)] ' +
   'transition-all duration-300 hover:-translate-y-0.5';
 
-const LandingPage = ({ onGetStarted, onLoginAsAdmin }) => {
+const LandingPage = ({ onGetStarted }) => {
   const features = [
     {
       icon: <LayoutDashboard className="w-7 h-7" />,
@@ -245,20 +245,6 @@ const LandingPage = ({ onGetStarted, onLoginAsAdmin }) => {
                 See how it works
               </button>
             </div>
-
-            {/* Power user / researcher quick access - always available from landing */}
-            {onLoginAsAdmin && (
-              <div className="mt-3 text-[11px] text-[#64748b]">
-                Researcher?{' '}
-                <button 
-                  onClick={onLoginAsAdmin} 
-                  className="underline hover:text-[#ff7a4d] font-medium"
-                >
-                  Sign in as admin
-                </button>{' '}
-                (admin / admin)
-              </div>
-            )}
 
             <div className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 text-xs text-[#64748b]">
               <span className="inline-flex items-center gap-1.5">
