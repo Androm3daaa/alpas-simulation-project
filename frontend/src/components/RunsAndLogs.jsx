@@ -29,6 +29,8 @@ const RunsAndLogs = ({ onSwitchToDashboard, onSwitchToAI, onPushTo3D }) => {
     isLoadingFullLog,
     refreshPastSims,
     clearAllRuns,
+    deleteRun,
+    renameRun,
     requestOpenOnDashboard,
     openRunForAnalyst,
   } = useSimulation();
@@ -141,7 +143,7 @@ const RunsAndLogs = ({ onSwitchToDashboard, onSwitchToAI, onPushTo3D }) => {
       </header>
 
       <div className="flex-1 flex min-h-0">
-        <aside className="w-[min(100%,17rem)] sm:w-72 lg:w-80 flex-shrink-0 border-r border-white/10 bg-[#0d1016] flex flex-col min-h-0">
+        <aside className="w-[min(100%,17rem)] sm:w-72 lg:w-96 flex-shrink-0 border-r border-white/10 bg-[#0d1016] flex flex-col min-h-0">
           <SavedRunsList
             pastSims={pastSims}
             activeRunId={activeRunId}
@@ -149,6 +151,23 @@ const RunsAndLogs = ({ onSwitchToDashboard, onSwitchToAI, onPushTo3D }) => {
               setSelectingRunId(s.id);
               try {
                 await selectRun(s);
+              } finally {
+                setSelectingRunId(null);
+              }
+            }}
+            onRename={async (entry, newLabel) => {
+              setSelectingRunId(entry.id);
+              try {
+                await renameRun(entry.id, newLabel);
+              } finally {
+                setSelectingRunId(null);
+              }
+            }}
+            onDelete={async (entry) => {
+              if (!confirm(`Delete run "${entry.label || entry.id.slice(0, 8)}"? This cannot be undone.`)) return;
+              setSelectingRunId(entry.id);
+              try {
+                await deleteRun(entry.id);
               } finally {
                 setSelectingRunId(null);
               }

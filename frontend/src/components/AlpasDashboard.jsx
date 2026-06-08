@@ -8,6 +8,8 @@ import {
   normalizeParamsFromServer,
   runEvacuationBatch,
 } from '../lib/alpasEngine';
+
+import { formatClientRunLabel } from '../lib/chatContext';
 import MitigationComparisonPanel from './MitigationComparisonPanel';
 import { buildTrajectoryFromCsv } from '../lib/jupedsimAdapter';
 import { normalizeBackendToSimResults } from '../lib/backendAnalysis';
@@ -87,6 +89,9 @@ const AlpasDashboard = ({ onPushTo3D, sharedSim, onClearSharedSim, onSwitchToLog
   const [savedRunSelect, setSavedRunSelect] = useState('');
   const [loadingSavedRun, setLoadingSavedRun] = useState(false);
 
+  const [savePrompt, setSavePrompt] = useState(null);
+  const [customSaveName, setCustomSaveName] = useState('');
+
   const chartsRef = useRef({});
   const trajectoryRef = useRef([]);
   const backendPollRef = useRef(null);
@@ -132,6 +137,8 @@ const AlpasDashboard = ({ onPushTo3D, sharedSim, onClearSharedSim, onSwitchToLog
   // ──────────────────────────────────────────────────────────────
   const runSimulation = async () => {
     if (isRunning) return;
+    setSavePrompt(null);
+    setCustomSaveName('');
 
     evacAbortRef.current = false;
     setIsRunning(true);
@@ -177,20 +184,21 @@ const AlpasDashboard = ({ onPushTo3D, sharedSim, onClearSharedSim, onSwitchToLog
         trajectoryHistory,
       };
       setSimResults(resultsPayload);
-        const { synced } = await setClientRunFromResults(params, resultsPayload);
-        const syncNote = synced
-          ? ' Saved to Run History.'
-          : ' Backend offline — run queued; start uvicorn to sync.';
 
         const safe = finalCas === 0;
       setStatusType(safe ? 'done' : 'danger');
         setStatusMsg(
           safe
-            ? `✓ Evacuation complete — ${finalEvac} cleared in ${Math.round(simTime)}s sim time.${syncNote}`
-            : `⚠ Evacuation complete — ${finalEvac} evacuated · ${finalCas} casualties at t=${Math.round(simTime)}s.${syncNote}`
+            ? `✓ Evacuation complete (emergent) — ${finalEvac} cleared in ${Math.round(simTime)}s. RSET now from agent sim.`
+            : `⚠ Evacuation complete (emergent) — ${finalEvac} evacuated · ${finalCas} casualties at t=${Math.round(simTime)}s. RSET from simulation.`
         );
 
-      window.setTimeout(() => buildCharts(simResults), 80);
+      // Offer explicit save with custom name instead of auto-saving
+      const defaultLabel = formatClientRunLabel(params);
+      setSavePrompt({ params, resultsPayload, defaultLabel });
+      setCustomSaveName(defaultLabel);
+
+      window.setTimeout(() => buildCharts(resultsPayload), 80);
     } catch (err) {
       console.error(err);
       setStatusType('danger');
@@ -217,9 +225,36 @@ const AlpasDashboard = ({ onPushTo3D, sharedSim, onClearSharedSim, onSwitchToLog
       clearInterval(backendPollRef.current);
       backendPollRef.current = null;
     }
+    setSavePrompt(null);
+    setCustomSaveName('');
     clearCurrentSim();
     Object.values(chartsRef.current).forEach((c) => c?.destroy?.());
     chartsRef.current = {};
+  };
+
+  const handleExplicitSave = async () => {
+    if (!savePrompt) return;
+    const labelToUse = (customSaveName || '').trim() || savePrompt.defaultLabel;
+
+    try {
+      const { synced } = await setClientRunFromResults(savePrompt.params, savePrompt.resultsPayload, labelToUse);
+      const syncNote = synced
+        ? ' Saved to Run History.'
+        : ' Backend offline — run queued; start uvicorn to sync.';
+
+      setStatusMsg((prev) => {
+        const base = prev.replace(/(\. Saved to Run History\.|\. Backend offline.*)/, '');
+        return `${base}${syncNote}`;
+      });
+
+      setSavePrompt(null);
+      setCustomSaveName('');
+    } catch (e) {
+      console.error('Explicit save failed', e);
+      setStatusMsg('Run complete, but saving failed. You can try again from Run History.');
+      setSavePrompt(null);
+      setCustomSaveName('');
+    }
   };
 
   const resetSimulation = () => {
@@ -288,7 +323,24 @@ const AlpasDashboard = ({ onPushTo3D, sharedSim, onClearSharedSim, onSwitchToLog
         setSimData(norm);
         trajectoryRef.current = [];
         setOccupants([]);
-        if (norm.T) window.setTimeout(() => buildCharts(norm), 60);
+        // For loaded backend runs, attach a client-side mitigation comparison if we can (analytical model)
+        let normForCharts = norm;
+        try {
+          // If the loaded data has original params or we can infer, recompute for the mit chart
+          const restoredParams = normalizeParamsFromServer(norm.params || {});
+          if (restoredParams && Object.keys(restoredParams).length > 1) {
+            const mitComparison = computeMitigationComparison(restoredParams);
+            normForCharts = {
+              ...norm,
+              mitComparison,
+              mitigations: mitComparison.scenarios,
+            };
+            setSimResults(normForCharts);
+          }
+        } catch (e) {
+          // non-fatal
+        }
+        if (normForCharts.T) window.setTimeout(() => buildCharts(normForCharts), 60);
 
         if (data.evacuation?.length) {
           const { trajectoryHistory, maxTime } = buildTrajectoryFromCsv(data.evacuation);
@@ -458,10 +510,11 @@ const AlpasDashboard = ({ onPushTo3D, sharedSim, onClearSharedSim, onSwitchToLog
       });
     }
 
-    // Mitigation comparison
+    // Mitigation comparison (defensive: support both mitigations and mitComparison.scenarios)
     const mitCtx = document.getElementById('mitChart');
-    if (mitCtx) {
-      const colors = d.mitigations.map((m) => {
+    const mitigations = (d && (d.mitigations || (d.mitComparison && d.mitComparison.scenarios))) || [];
+    if (mitCtx && mitigations.length > 0) {
+      const colors = mitigations.map((m) => {
         if (m.kind === 'baseline') return 'rgba(100,116,139,0.85)';
         if (m.kind === 'current') return 'rgba(34,197,94,0.9)';
         return m.margin > 30
@@ -473,10 +526,10 @@ const AlpasDashboard = ({ onPushTo3D, sharedSim, onClearSharedSim, onSwitchToLog
       chartsRef.current.mit = new ChartJS(mitCtx, {
         type: 'bar',
         data: {
-          labels: d.mitigations.map(m => m.name),
+          labels: mitigations.map(m => m.name),
           datasets: [{
             label: 'Safety Margin (s)',
-            data: d.mitigations.map(m => +m.margin.toFixed(0)),
+            data: mitigations.map(m => +m.margin.toFixed(0)),
             backgroundColor: colors,
             borderRadius: 3,
           }],
@@ -490,6 +543,10 @@ const AlpasDashboard = ({ onPushTo3D, sharedSim, onClearSharedSim, onSwitchToLog
           },
         },
       });
+    } else if (mitCtx) {
+      // Clear any stale content if no mitigation data
+      const ctx = mitCtx.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, mitCtx.width, mitCtx.height);
     }
   };
 
@@ -609,6 +666,44 @@ const AlpasDashboard = ({ onPushTo3D, sharedSim, onClearSharedSim, onSwitchToLog
             <span className="text-[#ff7a4d] font-mono tabular-nums">t = {Math.round(currentTime)}s</span>
           )}
         </div>
+
+        {/* Post-run save prompt with custom name */}
+        {savePrompt && (
+          <div className="mx-6 mt-2 mb-1 p-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] flex flex-col gap-2">
+            <div className="text-sm font-medium text-emerald-300">Save this simulation to Run History?</div>
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+              <input
+                type="text"
+                value={customSaveName}
+                onChange={(e) => setCustomSaveName(e.target.value)}
+                placeholder="Enter a name for this run"
+                className="flex-1 bg-[#111418] border border-white/10 focus:border-emerald-500/50 rounded-xl px-3 py-2 text-sm placeholder:text-[#475569] outline-none"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleExplicitSave}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors"
+                >
+                  Save to Run History
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSavePrompt(null);
+                    setCustomSaveName('');
+                  }}
+                  className="px-3 py-2 rounded-xl border border-white/10 text-[#94a3b8] hover:text-white text-sm hover:bg-white/5"
+                >
+                  Don't save
+                </button>
+              </div>
+            </div>
+            <div className="text-[10px] text-[#64748b]">
+              You can always rename it later from Run History or the AI Analyst.
+            </div>
+          </div>
+        )}
 
         {/* Simulation command center (FuseLab-style: map + events + multi-variable timeline) */}
         <div className="px-6 pt-4 pb-6">

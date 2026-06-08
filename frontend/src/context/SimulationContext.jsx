@@ -37,7 +37,22 @@ export const SimulationProvider = ({ children }) => {
   const [isLoadingFullLog, setIsLoadingFullLog] = useState(false);
   const [runSource, setRunSource] = useState('none');
   const [clientRun, setClientRun] = useState(null);
-  const [analystMessages, setAnalystMessages] = useState([]);
+  /** Per-run chat histories persisted in memory + localStorage so convos survive tab nav + run switches. */
+  const CHAT_STORAGE_KEY = 'alpas_analyst_chats_v1';
+  const [chatHistories, setChatHistories] = useState(() => {
+    try {
+      const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+      const obj = raw ? JSON.parse(raw) : {};
+      return obj && typeof obj === 'object' ? obj : {};
+    } catch {
+      return {};
+    }
+  });
+  const persistChatHistories = useCallback((next) => {
+    try {
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(next));
+    } catch {}
+  }, []);
   /** Bumped when Run History (or elsewhere) asks Dashboard to load the active run. */
   const [pendingDashboardRunId, setPendingDashboardRunId] = useState(null);
   /** Ensures AI Analyst reloads the selected run when opened from Run History. */
@@ -263,9 +278,9 @@ export const SimulationProvider = ({ children }) => {
   );
 
   const setClientRunFromResults = useCallback(
-    async (params, simResults) => {
+    async (params, simResults, customLabel = null) => {
       const analysis = buildClientAnalysis(params, simResults);
-      const label = formatClientRunLabel(params);
+      const label = customLabel || formatClientRunLabel(params);
 
       try {
         const r = await fetch(`${API}/simulation/client-run`, {
@@ -337,9 +352,51 @@ export const SimulationProvider = ({ children }) => {
     clearClientRunHistory();
     clearCurrentSim();
     setPastSims([]);
-    setAnalystMessages([]);
+    // Wipe all saved analyst chats too
+    setChatHistories({});
+    persistChatHistories({});
     return j;
-  }, [clearCurrentSim]);
+  }, [clearCurrentSim, persistChatHistories]);
+
+  const deleteRun = useCallback(async (simId) => {
+    if (!simId) return false;
+    try {
+      const r = await fetch(`${API}/simulation/${simId}`, { method: 'DELETE' });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${r.status}`);
+      }
+      // If the deleted run was active, clear it
+      if (activeSimId === simId || clientRun?.runKey === simId) {
+        clearCurrentSim();
+      }
+      await refreshPastSims();
+      return true;
+    } catch (e) {
+      console.warn('[ALPAS] delete run failed', e);
+      return false;
+    }
+  }, [activeSimId, clientRun, clearCurrentSim, refreshPastSims]);
+
+  const renameRun = useCallback(async (simId, newLabel) => {
+    if (!simId || !newLabel || !newLabel.trim()) return false;
+    try {
+      const r = await fetch(`${API}/simulation/${simId}/label`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label: newLabel.trim() }),
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${r.status}`);
+      }
+      await refreshPastSims();
+      return true;
+    } catch (e) {
+      console.warn('[ALPAS] rename run failed', e);
+      return false;
+    }
+  }, [refreshPastSims]);
 
   const runLabel = useMemo(() => {
     if (runSource === 'backend' && activeSimId) {
@@ -387,10 +444,53 @@ export const SimulationProvider = ({ children }) => {
     [runSource, activeSimId, clientRun]
   );
 
-  useEffect(() => {
+  const getWelcomeMessages = useCallback(() => {
     const welcome = chatWelcomeMessage({ runSource, runLabel, hasChatContext });
-    setAnalystMessages([{ role: 'assistant', content: welcome }]);
-  }, [contextKey, analystOpenSeq, runLabel, hasChatContext, runSource]);
+    return [{ role: 'assistant', content: welcome }];
+  }, [runSource, runLabel, hasChatContext]);
+
+  // Per-run persisted messages. If we have a saved convo for this run's key, use it (even across nav).
+  // Otherwise show a fresh welcome (no auto-save of welcome until user sends first msg).
+  const analystMessages = useMemo(() => {
+    const stored = chatHistories[contextKey];
+    if (stored && Array.isArray(stored) && stored.length > 0) {
+      return stored;
+    }
+    return getWelcomeMessages();
+  }, [chatHistories, contextKey, getWelcomeMessages]);
+
+  // Smart setter: always targets the *current* run's key. Accepts value or (prev)=>next updater.
+  // Uses the visible messages (stored or current welcome) so first append keeps the welcome.
+  const setAnalystMessagesForCurrent = useCallback((updater) => {
+    setChatHistories((prev) => {
+      const stored = prev[contextKey];
+      const visibleCurrent = (stored && Array.isArray(stored) && stored.length > 0)
+        ? stored
+        : getWelcomeMessages();
+      let nextForKey;
+      if (typeof updater === 'function') {
+        nextForKey = updater(visibleCurrent);
+      } else {
+        nextForKey = updater;
+      }
+      if (!Array.isArray(nextForKey)) nextForKey = [];
+      const next = { ...prev, [contextKey]: nextForKey };
+      persistChatHistories(next);
+      return next;
+    });
+  }, [contextKey, getWelcomeMessages, persistChatHistories]);
+
+  // Public alias so existing consumers (ResultsChatbot etc) keep working unchanged.
+  const setAnalystMessages = setAnalystMessagesForCurrent;
+
+  const clearCurrentAnalystChat = useCallback(() => {
+    setChatHistories((prev) => {
+      const next = { ...prev };
+      if (contextKey) delete next[contextKey];
+      persistChatHistories(next);
+      return next;
+    });
+  }, [contextKey, persistChatHistories]);
 
   const askAnalyst = useCallback(
     async (question, history = []) => {
@@ -442,12 +542,16 @@ export const SimulationProvider = ({ children }) => {
     refreshPastSims,
     clearCurrentSim,
     clearAllRuns,
+    deleteRun,
+    renameRun,
     selectBackendRun,
     setClientRunFromResults,
     askAnalyst,
     setActiveSimId,
     analystMessages,
     setAnalystMessages,
+    clearCurrentAnalystChat,
+    chatHistories,
     contextKey,
     pendingDashboardRunId,
     requestOpenOnDashboard,

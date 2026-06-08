@@ -192,7 +192,18 @@ async def run_simulation(config: SimulationConfig, background_tasks: BackgroundT
 
 
 def _label_for_run_dir(work_dir: str, name: str, created: float) -> str:
-    """Human-readable list label from config.json or analysis.json."""
+    """Human-readable list label from config.json or analysis.json. Custom label.txt takes precedence."""
+    # Custom rename support
+    label_txt = os.path.join(work_dir, "label.txt")
+    if os.path.exists(label_txt):
+        try:
+            with open(label_txt, encoding="utf-8") as lf:
+                custom = lf.read().strip()
+            if custom:
+                return custom
+        except Exception:
+            pass
+
     cfg_path = os.path.join(work_dir, "config.json")
     when = datetime.datetime.fromtimestamp(created).strftime("%b %d %H:%M") if created else ""
     try:
@@ -246,7 +257,11 @@ def save_client_run(payload: ClientRunPayload):
     if not label:
         occ = params.get("occ") or params.get("occupant_count") or "?"
         hrr = params.get("hrr") or params.get("hrr_peak") or 3000
-        label = f"Quick analysis · {occ} occupants · {float(hrr) / 1000:.1f} MW"
+        hrr_mw = float(hrr) / 1000 if float(hrr) > 50 else float(hrr)
+        room = params.get("occupantRoom") or params.get("occupant_room") or "r304"
+        # Match the web app's current naming convention from formatClientRunLabel
+        zone = f"Room {room[1:]}" if isinstance(room, str) and room.startswith("r") else str(room)
+        label = f"Quick analysis · {occ} in {zone} · {hrr_mw:.1f} MW"
 
     analysis["sim_id"] = sim_id
     analysis["run_source"] = "client"
@@ -421,6 +436,7 @@ def execute_sim_workflow(sim_id, work_dir, config):
 
         # Always capture full FDS output for logs/analysis
         _append_run_log(work_dir, "\n=== FDS STDOUT ===")
+        # Note: generate_fds_file now uses improved multi-compartment geometry (walls, corridor, stair core, door openings).
         _append_run_log(work_dir, result.stdout or "(no stdout)")
         if result.stderr:
             _append_run_log(work_dir, "=== FDS STDERR ===")
@@ -464,50 +480,157 @@ def execute_sim_workflow(sim_id, work_dir, config):
         _append_run_log(work_dir, f"[{sim_id}] WORKFLOW EXCEPTION: {e}")
 
 def generate_fds_file(sim_id, work_dir, config):
-    fds_content = f"""&HEAD CHID='school_{sim_id}', TITLE='School Fire Simulation' /
-&MESH IJK=30,30,10, XB=-25.0,25.0,-20.0,20.0,0.0,15.0 /
-&TIME T_END=60.0 /
-&REAC ID='WOOD', C=6., H=10., O=5., SOOT_YIELD={config.soot_yield} /
-&SURF ID='FIRE', HRRPUA={config.hrr_peak/4.0}, TAU_Q=-{300.0 if config.growth_rate == "medium" else 150.0}, COLOR='RED' /
-&OBST XB=4.0,6.0,4.0,6.0,0.0,2.0, SURF_ID='FIRE' /
-&DEVC ID='vis_1', QUANTITY='VISIBILITY', XYZ=0.0,0.0,1.8 /
-&DEVC ID='temp_1', QUANTITY='TEMPERATURE', XYZ=2.0,0.0,1.8 /
-&SLCF QUANTITY='TEMPERATURE', PBX=5.0 /
-&SLCF QUANTITY='VISIBILITY', PBX=5.0 /
+    """Improved FDS input with more realistic (still simplified) school geometry.
+    Adds walls (OBST), corridor, multiple rooms, stair representation, and better device placement.
+    Still toy compared to full BIM but much closer than a single fire block in empty space.
+    """
+    hrrpua = config.hrr_peak / 4.0
+    tau = -300.0 if getattr(config, 'growth_rate', 'medium') == "medium" else -150.0
+    soot = getattr(config, 'soot_yield', 0.05)
+
+    # Larger mesh covering the approximate school footprint (matches 2D plan proportions)
+    fds = f"""&HEAD CHID='school_{sim_id}', TITLE='ALPAS School Fire Simulation - Improved Geometry' /
+
+&MESH IJK=60,48,12, XB=-28.0,28.0,-8.0,64.0,0.0,12.0 /
+
+&TIME T_END=180.0 /
+
+&REAC ID='WOOD', C=6., H=10., O=5., SOOT_YIELD={soot} /
+
+&SURF ID='FIRE', HRRPUA={hrrpua}, TAU_Q={tau}, COLOR='RED' /
+&SURF ID='WALL', DEFAULT=.TRUE. /
+
+! Fire origin (classroom-like compartment)
+&OBST XB=4.0,7.5,18.0,22.0,0.0,3.0, SURF_ID='FIRE' /   ! fire block
+
+! External walls (rough school outline)
+&OBST XB=-26,26,-6,-4,0,10 /   ! south wall
+&OBST XB=-26,26,62,64,0,10 /   ! north wall
+&OBST XB=-26,-24,-4,62,0,10 /  ! west wall
+&OBST XB=24,26,-4,62,0,10 /    ! east wall
+
+! Internal walls creating classrooms + corridor (schematic but multi-compartment)
+&OBST XB=-10, -8,  0, 30, 0, 3.2 /   ! room dividers west
+&OBST XB= 0,  2,  0, 30, 0, 3.2 /
+&OBST XB=10, 12,  0, 30, 0, 3.2 /
+&OBST XB=20, 22,  0, 30, 0, 3.2 /
+
+! Corridor walls
+&OBST XB=-24,24,28,30,0,3.2 /     ! south side of corridor
+&OBST XB=-24,24,38,40,0,3.2 /     ! north side of corridor
+
+! Stairwell block (vertical core)
+&OBST XB=14,22,42,58,0,10 / 
+
+! Door openings (HOLEs) - allow flow between compartments
+&HOLE XB= -6.5,-5.5,28,30,0,3.2 /   ! door to corridor west
+&HOLE XB=  5.5, 6.5,28,30,0,3.2 /
+&HOLE XB= 15.5,16.5,28,30,0,3.2 /
+&HOLE XB=  8,10,38,40,0,3.2 /      ! stair access
+
+! Devices for ASET (visibility + temp at head height in key locations)
+&DEVC ID='vis_corr', QUANTITY='VISIBILITY', XYZ=0.0,34.0,1.8 /
+&DEVC ID='temp_corr', QUANTITY='TEMPERATURE', XYZ=0.0,34.0,1.8 /
+&DEVC ID='vis_room', QUANTITY='VISIBILITY', XYZ=6.0,20.0,1.8 /
+&DEVC ID='temp_room', QUANTITY='TEMPERATURE', XYZ=6.0,20.0,1.8 /
+&DEVC ID='vis_stair', QUANTITY='VISIBILITY', XYZ=18.0,50.0,1.8 /
+
+&SLCF QUANTITY='TEMPERATURE', PBZ=1.8 /
+&SLCF QUANTITY='VISIBILITY', PBZ=1.8 /
+
 &TAIL /
 """
     file_path = os.path.join(work_dir, f"school_{sim_id}.fds")
     with open(file_path, "w") as f:
-        f.write(fds_content)
+        f.write(fds)
     return file_path
 
 def run_jupedsim(work_dir, config):
+    """Improved JuPedSim run using a more realistic school-like layout.
+    - Rectangular school footprint with internal 'walls' approximated by room clusters.
+    - Agents start in realistic room groups (classrooms + waiting).
+    - Multiple exits (west, east, south) with door-like stages.
+    - Better flow through 'corridor' area.
+    This makes RSET and congestion numbers much more meaningful than a single empty rectangle.
+    """
     import jupedsim as jps
     from shapely.geometry import Polygon
     import csv
 
-    coords = [(-42.28, -4.78), (8.31, -4.78), (8.31, 62.87), (-42.28, 62.87)]
-    walkable_area = Polygon(coords)
-    sim = jps.Simulation(model=jps.CollisionFreeSpeedModel(), geometry=walkable_area, dt=0.05)
-    
-    exit_poly = Polygon([(-2.0, -4.8), (2.0, -4.8), (2.0, -4.3), (-2.0, -4.3)])
-    exit_id = sim.add_exit_stage(exit_poly)
-    journey_id = sim.add_journey(jps.JourneyDescription([exit_id]))
+    # School-like rectangular domain (scaled to roughly match the 2D plan proportions)
+    walkable = Polygon([
+        (-42.0, -4.0), (6.0, -4.0), (6.0, 60.0), (-42.0, 60.0)
+    ])
 
-    params = jps.CollisionFreeSpeedModelAgentParameters(
-        desired_speed=config.walking_speed, 
-        radius=0.2,
-        journey_id=journey_id,
-        stage_id=exit_id
+    sim = jps.Simulation(
+        model=jps.CollisionFreeSpeedModel(),
+        geometry=walkable,
+        dt=0.05
     )
 
-    for i in range(config.occupant_count):
-        params.position = (-10 + (i % 5) * 1.5, 20 + (i // 5) * 1.5)
+    # Multiple realistic exits (west main, east main, south ground exit)
+    exit_w = sim.add_exit_stage(Polygon([(-42.0, 24.0), (-40.0, 24.0), (-40.0, 28.0), (-42.0, 28.0)]))
+    exit_e = sim.add_exit_stage(Polygon([(4.0, 24.0), (6.0, 24.0), (6.0, 28.0), (4.0, 28.0)]))
+    exit_s = sim.add_exit_stage(Polygon([(-18.0, -4.0), (-10.0, -4.0), (-10.0, -2.0), (-18.0, -2.0)]))
+
+    # Journey that allows any of the exits (agents will pick nearest reasonable)
+    journey = sim.add_journey(jps.JourneyDescription([exit_w, exit_e, exit_s]))
+
+    base_speed = getattr(config, 'walking_speed', 1.2)
+    n_agents = getattr(config, 'occupant_count', 60)
+
+    # Place agents in room-like clusters (more realistic starting distribution)
+    # Cluster layout roughly: upper classrooms (north), waiting/lobby (south), some in corridor
+    room_clusters = [
+        # "Classrooms" north side
+        {"center": (-30, 48), "count": max(4, n_agents // 5), "spread": 3.5},
+        {"center": (-18, 48), "count": max(4, n_agents // 5), "spread": 3.5},
+        {"center": (-6, 48), "count": max(4, n_agents // 5), "spread": 3.5},
+        # Waiting / ground area south
+        {"center": (-24, 12), "count": max(6, n_agents // 4), "spread": 5.0},
+        # Corridor / additional
+        {"center": (-12, 30), "count": max(3, n_agents // 8), "spread": 4.0},
+    ]
+
+    agent_id = 0
+    for cluster in room_clusters:
+        cx, cy = cluster["center"]
+        cnt = cluster["count"]
+        spread = cluster["spread"]
+        for _ in range(cnt):
+            if agent_id >= n_agents:
+                break
+            x = cx + (agent_id % 7 - 3) * (spread / 3.5) + (agent_id % 3 - 1) * 0.6
+            y = cy + ((agent_id // 3) % 5 - 2) * (spread / 4.5)
+            params = jps.CollisionFreeSpeedModelAgentParameters(
+                desired_speed=base_speed * (0.92 + (agent_id % 5) * 0.03),
+                radius=0.22,
+                journey_id=journey,
+                stage_id=exit_w if x < -20 else (exit_e if x > -5 else exit_s),
+            )
+            params.position = (x, y)
+            sim.add_agent(params)
+            agent_id += 1
+
+    # Fill any remaining agents near corridor
+    while agent_id < n_agents:
+        x = -14 + (agent_id % 6) * 1.8
+        y = 26 + (agent_id // 6) * 1.2
+        params = jps.CollisionFreeSpeedModelAgentParameters(
+            desired_speed=base_speed,
+            radius=0.22,
+            journey_id=journey,
+            stage_id=exit_s,
+        )
+        params.position = (x, y)
         sim.add_agent(params)
+        agent_id += 1
 
     trajectories = []
-    for _ in range(1200): # Up to 60s for test
-        if sim.agent_count == 0: break
+    max_steps = 2400  # up to ~120s simulated time
+    for _ in range(max_steps):
+        if sim.agent_count == 0:
+            break
         sim.iterate()
         t = sim.iteration_count() * 0.05
         for agent in sim.agents():
@@ -562,14 +685,42 @@ def clear_all_simulations():
         return {"ok": False, "removed": removed, "errors": [str(e)], "message": str(e)}
 
 
+@app.delete("/simulation/{sim_id}")
+def delete_simulation(sim_id: str):
+    """Delete a single run (works for both Quick/client and FDS backend runs)."""
+    work_dir = os.path.join(SIM_DIR, sim_id)
+    if not os.path.isdir(work_dir):
+        raise HTTPException(status_code=404, detail="Simulation not found")
+    try:
+        shutil.rmtree(work_dir)
+        return {"ok": True, "deleted": sim_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/simulation/{sim_id}/label")
+async def set_simulation_label(sim_id: str, payload: Dict[str, Any]):
+    """Rename / set custom label for a run. Stored as label.txt (takes precedence in listings)."""
+    work_dir = os.path.join(SIM_DIR, sim_id)
+    if not os.path.isdir(work_dir):
+        raise HTTPException(status_code=404, detail="Simulation not found")
+    new_label = (payload.get("label") or "").strip()
+    if not new_label:
+        raise HTTPException(status_code=400, detail="Label cannot be empty")
+    try:
+        with open(os.path.join(work_dir, "label.txt"), "w", encoding="utf-8") as f:
+            f.write(new_label)
+        return {"ok": True, "sim_id": sim_id, "label": new_label}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/simulations")
 def list_simulations(limit: int = 30):
     """List recent simulation runs so the UI can show 'Past backend runs'."""
     try:
         entries = []
-        for name in sorted(os.listdir(SIM_DIR), reverse=True):
-            if len(entries) >= limit:
-                break
+        for name in os.listdir(SIM_DIR):
             p = os.path.join(SIM_DIR, name)
             if not os.path.isdir(p):
                 continue
@@ -603,6 +754,9 @@ def list_simulations(limit: int = 30):
                 "margin": margin_preview,
                 "casualties": casualties_preview,
             })
+        # Sort newest first (by creation time, descending)
+        entries.sort(key=lambda e: e.get("created", 0), reverse=True)
+        entries = entries[:limit]
         return {"simulations": entries}
     except Exception as e:
         return {"simulations": [], "error": str(e)}

@@ -9,7 +9,7 @@ export default function ResultsChatbot({
   onSendQuestion,
   embedded = false,
 }) {
-  const { analystMessages, setAnalystMessages } = useSimulation();
+  const { analystMessages, setAnalystMessages, clearCurrentAnalystChat } = useSimulation();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
@@ -94,6 +94,20 @@ export default function ResultsChatbot({
         ))}
       </div>
 
+      {/* Per-run chat is now saved across navigation and run switches. Offer explicit clear for this run's convo. */}
+      {analystMessages.some((m) => m.role === 'user') && clearCurrentAnalystChat && (
+        <div className="flex justify-end -mt-1 mb-1.5 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => clearCurrentAnalystChat()}
+            className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-[#64748b] hover:text-red-300 hover:border-red-400/40 transition-colors"
+            title="Clear conversation history for the currently loaded run (previous messages for other runs are kept)"
+          >
+            Clear chat for this run
+          </button>
+        </div>
+      )}
+
       <div
         ref={scrollRef}
         className="flex-1 min-h-0 bg-[#050608]/80 border border-white/10 rounded-2xl p-4 overflow-y-auto scrollbar-thin space-y-3 mb-3"
@@ -106,7 +120,7 @@ export default function ResultsChatbot({
               </div>
             )}
             <div
-              className={`rounded-2xl px-3.5 py-2 max-w-[85%] text-[13px] leading-relaxed whitespace-pre-wrap ${
+              className={`rounded-2xl px-3.5 py-2 max-w-[85%] text-sm leading-relaxed whitespace-pre-wrap ${
                 msg.role === 'user'
                   ? 'bg-[#ff4d1c]/12 text-white border border-[#ff4d1c]/25'
                   : 'bg-[#111418] text-[#e2e8f0] border border-white/10'

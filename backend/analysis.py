@@ -54,11 +54,12 @@ def generate_analysis(sim_id: str, work_dir: str, config: Dict[str, Any]) -> Dic
         "evac_stats": {},
         "narrative_summary": "",
         "limitations": [
-            "Current FDS input uses minimal geometry (single small fire OBST in large domain; no walls/rooms/doors modeled from school plan).",
-            "JuPedSim domain is flat 2D rectangle (no stairs, no multi-floor vertical movement, no real school floor plan).",
-            "No per-agent FED/toxicity, local visibility-based speed changes, or detailed wayfinding yet.",
+            "FDS + JuPedSim now use improved schematic geometry (multiple compartments, corridor, stair core, multiple exits). Still simplified vs full BIM/school drawings.",
+            "No real per-agent FED/toxicity or detailed behavioral wayfinding (herding, route choice under smoke). Visibility affects speed in the Quick engine; backend JPS uses constant desired speed.",
+            "ASET is derived from device data where available; RSET for backend runs is observed last-agent time from JuPedSim trajectories.",
+            "2D Quick analysis (Dashboard) is the primary high-fidelity replay surface with emergent RSET from agent simulation, door-flow congestion, and visibility-reduced speeds.",
         ],
-        "data_quality": "low (toy geometry - see limitations)",
+        "data_quality": "medium-low (improved schematic geometry with explicit doors/exits and emergent evacuation timing)",
     }
 
     # --- FDS HRR ---

@@ -145,9 +145,9 @@ const HeroFireSmoke = ({ intensity = 0.9 }) => {
 
 const LandingHero3D = ({ className = '', showFire = true }) => {
   return (
-    <div className={`relative w-full h-full min-h-[420px] rounded-3xl overflow-hidden bg-[#050608] border border-white/10 shadow-2xl ring-1 ring-white/5 ${className}`}>
+    <div className={`relative w-full h-full min-h-[420px] rounded-3xl overflow-hidden bg-[#050608]/70 border border-white/10 shadow-2xl ring-1 ring-white/5 backdrop-blur-[1px] ${className}`}>
       <Canvas
-        style={{ background: '#050608', display: 'block', width: '100%', height: '100%' }}
+        style={{ background: 'transparent', display: 'block', width: '100%', height: '100%' }}
         gl={{ 
           antialias: true, 
           alpha: false, 

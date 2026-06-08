@@ -113,6 +113,24 @@ const FloorPlanViewer = ({
       ctx.fillText(label, room.x + room.w / 2, room.y + room.h / 2);
     });
 
+    // Draw explicit doors (richer geometry for realistic flow)
+    if (floorData.doors && floorData.doors.length) {
+      floorData.doors.forEach((door) => {
+        ctx.fillStyle = '#22c55e';
+        ctx.globalAlpha = 0.75;
+        ctx.fillRect(door.x, door.y, door.w, door.h);
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = '#16a34a';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(door.x, door.y, door.w, door.h);
+        // Small indicator of width importance (wider = thicker stroke or dot)
+        if (door.width && door.width > 2.0) {
+          ctx.fillStyle = '#4ade80';
+          ctx.fillRect(door.x + door.w * 0.35, door.y + door.h * 0.35, door.w * 0.3, door.h * 0.3);
+        }
+      });
+    }
+
     if (showExits && floorData.exits) {
       floorData.exits.forEach((ex, i) => {
         ctx.fillStyle = '#22c55e';
@@ -215,6 +233,9 @@ const FloorPlanViewer = ({
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-[#22c55e]" /> Exit
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-1.5 bg-[#22c55e]/75 border border-[#16a34a]" /> Door (flow)
           </span>
           <span className="ml-auto font-mono tabular-nums">
             {counts.active} inside · {counts.evac} out · {counts.cas} casualties

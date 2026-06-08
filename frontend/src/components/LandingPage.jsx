@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LandingHero3D from './LandingHero3D';
+import InteractiveBackground from './InteractiveBackground';
 
 const LANDING_CARD =
   'group relative flex flex-col min-h-[220px] rounded-3xl p-8 lg:p-9 overflow-hidden ' +
@@ -192,23 +193,17 @@ const LandingPage = ({ onGetStarted }) => {
         onMouseMove={handleHeroMouseMove}
         className="relative min-h-[calc(100vh-4rem)] flex items-center overflow-hidden pt-20 pb-12 px-8 bg-[#050608]"
       >
-        {/* Pure dark background to match the serious internal app aesthetic (no stock photo) */}
-        <div className="absolute inset-0 bg-[#050608]" />
-        {/* Subtle grid / tech feel for a simulation tool */}
-        <div 
-          className="absolute inset-0 opacity-[0.06]" 
-          style={{
-            backgroundImage: 'linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)',
-            backgroundSize: '48px 48px'
-          }} 
+        {/* New best interactive background - unified across the landing page */}
+        <InteractiveBackground 
+          intensity={0.72} 
+          particleCount={85}
+          showGrid={true}
         />
 
-        {/* Artistic mid-ground glows and lines (static, high quality feel) */}
+        {/* Subtle artistic warm glows layered on top of interactive bg */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[15%] left-[8%] w-[380px] h-[380px] bg-[#ff4d1c] rounded-full blur-[130px] opacity-[0.08]" />
-          <div className="absolute bottom-[18%] right-[6%] w-[340px] h-[340px] bg-[#f59e0b] rounded-full blur-[110px] opacity-[0.07]" />
-          <div className="absolute top-[30%] left-0 w-full h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
-          <div className="absolute top-[58%] left-0 w-full h-px bg-gradient-to-r from-transparent via-white/6 to-transparent" />
+          <div className="absolute top-[10%] left-[5%] w-[460px] h-[460px] bg-[#ff4d1c] rounded-full blur-[170px] opacity-[0.065]" />
+          <div className="absolute bottom-[12%] right-[3%] w-[380px] h-[380px] bg-[#f59e0b] rounded-full blur-[130px] opacity-[0.05]" />
         </div>
 
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-x-16 gap-y-10 items-center w-full relative z-10">
@@ -298,14 +293,15 @@ const LandingPage = ({ onGetStarted }) => {
         </div>
       </div>
 
-      {/* Features — Full-screen page with strong background image */}
+      {/* Features — Full-screen page with the best interactive background */}
       <div id="features" className="relative min-h-screen flex items-center border-t border-white/10 overflow-hidden">
-        {/* Strong background image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-[0.32]"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=2000&q=80')` }}
+        <InteractiveBackground 
+          intensity={0.95} 
+          particleCount={125}
+          showGrid={true}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0c0f]/90 via-[#0a0c0f]/82 to-[#0a0c0f]/92" />
+        {/* Subtle dark gradient for text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0c0f]/88 via-[#0a0c0f]/78 to-[#0a0c0f]/90" />
 
         <div className="max-w-6xl mx-auto px-6 sm:px-8 py-16 md:py-24 w-full relative z-10 min-h-[min(100vh,900px)] flex flex-col justify-center">
           <div className="text-center mb-12 md:mb-14">
@@ -344,11 +340,12 @@ const LandingPage = ({ onGetStarted }) => {
 
       {/* How it Works */}
       <div id="how-it-works" className="relative min-h-screen flex items-center border-t border-white/10 overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-[0.28]"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=2000&q=80')` }}
+        <InteractiveBackground 
+          intensity={0.82} 
+          particleCount={95}
+          showGrid={true}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0c0f]/92 via-[#0a0c0f]/85 to-[#0a0c0f]/94" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0c0f]/90 via-[#0a0c0f]/82 to-[#0a0c0f]/92" />
 
         <div className="max-w-6xl mx-auto px-6 sm:px-8 py-16 md:py-24 w-full relative z-10 min-h-[min(100vh,900px)] flex flex-col justify-center">
           <div className="text-center mb-12 md:mb-14">
@@ -407,14 +404,15 @@ const LandingPage = ({ onGetStarted }) => {
         </div>
       </div>
 
-      {/* Mission & Philosophy — Full-screen page with strong background image */}
+      {/* Mission & Philosophy */}
       <div id="mission" className="relative min-h-screen flex items-center border-t border-white/10 overflow-hidden">
-        {/* Strong background image - made much more visible */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-[0.42]"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=2000&q=80')` }}
+        <InteractiveBackground 
+          intensity={1.05} 
+          particleCount={140}
+          showGrid={true}
         />
-        <div className="absolute inset-0 bg-[#0a0c0f]/82" />
+        {/* Slightly stronger overlay for this more philosophical section */}
+        <div className="absolute inset-0 bg-[#0a0c0f]/78" />
 
         <div className="max-w-5xl mx-auto px-8 py-12 w-full relative z-10">
           <div className="text-center mb-12">
@@ -444,13 +442,14 @@ const LandingPage = ({ onGetStarted }) => {
         </div>
       </div>
 
-      {/* Final CTA — Full-screen closing page with strong background image */}
+      {/* Final CTA */}
       <div className="relative min-h-[70vh] flex items-center py-12 px-8 text-center border-t border-white/10 overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-[0.35]"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1511818966892-d7d671e67233?w=2000&q=80')` }}
+        <InteractiveBackground 
+          intensity={0.88} 
+          particleCount={100}
+          showGrid={true}
         />
-        <div className="absolute inset-0 bg-[#111418]/82" />
+        <div className="absolute inset-0 bg-[#0a0c0f]/80" />
         <div className="max-w-2xl mx-auto relative z-10">
           <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">Ready to protect lives beyond fear?</h2>
           <p className="text-lg text-[#c8ccd4] mb-8">

@@ -19,6 +19,8 @@ const AIAnalyst = ({ onPushTo3D, onSwitchToDashboard }) => {
     clearPendingAnalystRun,
     pastSims,
     refreshPastSims,
+    deleteRun,
+    renameRun,
   } = useSimulation();
 
   const [runsPanelOpen, setRunsPanelOpen] = useState(true);
@@ -80,11 +82,28 @@ const AIAnalyst = ({ onPushTo3D, onSwitchToDashboard }) => {
 
       <div className="flex-1 flex min-h-0">
         {runsPanelOpen && (
-          <aside className="w-[min(100%,17rem)] sm:w-72 lg:w-80 flex-shrink-0 border-r border-white/10 bg-[#0d1016] flex flex-col min-h-0">
+          <aside className="w-[min(100%,17rem)] sm:w-72 lg:w-96 flex-shrink-0 border-r border-white/10 bg-[#0d1016] flex flex-col min-h-0">
             <SavedRunsList
               pastSims={pastSims}
               activeRunId={activeRunId}
               onSelectRun={selectRun}
+              onRename={async (entry, newLabel) => {
+                setSelectingRunId(entry.id);
+                try {
+                  await renameRun(entry.id, newLabel);
+                } finally {
+                  setSelectingRunId(null);
+                }
+              }}
+              onDelete={async (entry) => {
+                if (!confirm(`Delete run "${entry.label || entry.id.slice(0, 8)}"? This cannot be undone.`)) return;
+                setSelectingRunId(entry.id);
+                try {
+                  await deleteRun(entry.id);
+                } finally {
+                  setSelectingRunId(null);
+                }
+              }}
               selectingRunId={selectingRunId}
               isLoadingSim={isLoadingSim}
               className="flex-1 min-h-0"

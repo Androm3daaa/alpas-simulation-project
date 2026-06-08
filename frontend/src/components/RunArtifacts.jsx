@@ -23,16 +23,16 @@ export function SafetyAnalysisPanel({ analysis, compact = false, hideHeader = fa
 
   if (compact) {
     return (
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="grid grid-cols-2 gap-2">
         {entries.map(([k, v]) => (
           <div
             key={k}
-            className="rounded-lg px-2.5 py-2 border border-white/[0.08] bg-[#111418]/80"
+            className="rounded-lg px-3 py-2.5 border border-white/[0.08] bg-[#111418]/80"
           >
-            <div className="text-[9px] uppercase tracking-wide text-[#64748b] leading-tight">
+            <div className="text-[10px] uppercase tracking-wide text-[#64748b] leading-tight">
               {metricLabel(k)}
             </div>
-            <div className="font-mono text-sm text-[#f1f5f9] tabular-nums mt-0.5">
+            <div className="font-mono text-base text-[#f1f5f9] tabular-nums mt-0.5">
               {formatMetricValue(k, v)}
             </div>
           </div>
@@ -47,8 +47,8 @@ export function SafetyAnalysisPanel({ analysis, compact = false, hideHeader = fa
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 size={18} className="text-emerald-400" />
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-[#e2e8f0]">Detailed metrics</div>
-            <div className="text-[10px] text-[#64748b]">From analysis.json</div>
+            <div className="text-base font-semibold text-[#e2e8f0]">Detailed metrics</div>
+            <div className="text-xs text-[#64748b]">From analysis.json</div>
           </div>
           {analysis.data_quality && (
             <span className="text-[10px] px-2.5 py-1 rounded-full bg-white/5 text-[#94a3b8] border border-white/10 shrink-0">
@@ -59,21 +59,21 @@ export function SafetyAnalysisPanel({ analysis, compact = false, hideHeader = fa
       )}
 
       <div
-        className={`grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 ${
+        className={`grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 ${
           analysis.narrative_summary || analysis.limitations?.length ? 'mb-4' : ''
         }`}
       >
         {entries.map(([k, v]) => (
-          <div key={k} className="bg-black/25 rounded-lg px-2.5 py-2 border border-white/5">
-            <div className="text-[10px] text-[#64748b] leading-tight">{metricLabel(k)}</div>
-            <div className="font-mono text-sm text-white tabular-nums">{formatMetricValue(k, v)}</div>
+          <div key={k} className="bg-black/25 rounded-lg px-3 py-2.5 border border-white/5">
+            <div className="text-xs text-[#64748b] leading-tight">{metricLabel(k)}</div>
+            <div className="font-mono text-base text-white tabular-nums mt-0.5">{formatMetricValue(k, v)}</div>
           </div>
         ))}
       </div>
 
       {analysis.narrative_summary && !compact && (
         <div
-          className={`text-xs text-[#94a3b8] whitespace-pre-wrap leading-relaxed ${
+          className={`text-sm text-[#94a3b8] whitespace-pre-wrap leading-relaxed ${
             hideHeader ? '' : 'border-t border-white/10 pt-3'
           }`}
         >
@@ -87,8 +87,8 @@ export function SafetyAnalysisPanel({ analysis, compact = false, hideHeader = fa
 
       {analysis.limitations?.length > 0 && !compact && analysis.run_source === 'backend' && (
         <div className="mt-3 pt-3 border-t border-white/10">
-          <div className="text-[10px] uppercase tracking-widest text-amber-400/90 mb-1.5">Limitations</div>
-          <ul className="text-[11px] text-[#a1a1aa] space-y-1">
+          <div className="text-xs uppercase tracking-widest text-amber-400/90 mb-1.5">Limitations</div>
+          <ul className="text-sm text-[#a1a1aa] space-y-1">
             {analysis.limitations.map((l, i) => (
               <li key={i} className="leading-snug">
                 · {l}
@@ -188,7 +188,7 @@ export function RunLogPanel({
       )}
 
       <pre
-        className={`flex-1 min-h-0 overflow-auto scrollbar-thin bg-[#080a0d] border border-white/10 rounded-xl p-3 text-[11px] font-mono leading-[1.5] text-[#b8c4d4] whitespace-pre-wrap ${
+        className={`flex-1 min-h-0 overflow-auto scrollbar-thin bg-[#080a0d] border border-white/10 rounded-xl p-3 text-sm font-mono leading-[1.5] text-[#b8c4d4] whitespace-pre-wrap ${
           compact ? 'max-h-[min(12rem,28vh)]' : ''
         }`}
       >
