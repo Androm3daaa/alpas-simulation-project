@@ -456,13 +456,52 @@ const doc = new Document({
         // --- Section 6 ---
         h1("6. Experimentation and Results"),
         h2("6.1. Scenarios Tested"),
-        bullet("Default demo: 60 occupants, medium growth, 1.2 MW, fire in corridor, origin Room 304, mitigations on."),
-        bullet("High-load stress: increased occ and fast growth with mitigations disabled (baseline)."),
-        bullet("Location sweep: waiting area vs classroom vs stairwell fire origins."),
-        bullet("FDS pipeline: backend-generated school_{uuid}.fds with 40 agents, 60 s horizon."),
+        p(
+          "To evaluate building safety margins, a series of deterministic and agent-based simulation scenarios were executed. The primary objective was to observe the transition from a highly hazardous, low-safety egress environment to a completely mitigated, casualty-free environment under a Slow t² fire growth rate and 60 occupants on the 3rd Floor Corridor (origin near Room 304):"
+        ),
+        bullet("Scenario 1: Baseline Control — Baseline parameters with all active safety systems disabled (no mitigations)."),
+        bullet("Scenario 2: Single-Mitigation Isolation (Scenario 2A) — Automatic wet-pipe sprinklers active (sprinkler temperature threshold: 68°C, RTI: 50)."),
+        bullet("Scenario 3: Multi-System Synergistic Interventions — Multi-mitigation configurations including Scenario 3A (Sprinklers + Vents), Scenario 3B (Sprinklers + Vents + AI Signage), and Scenario 3C (Sprinklers + Fire Doors + Vents + AI Signage)."),
+        bullet("Scenario 4: High-Capacity Structural Upgrades — Advanced configurations including Scenario 4A (Sprinklers + Fire Doors + Vents + AI Signage + Wider Exits) and Scenario 4B (Full Suite with Stairwell Pressurization)."),
+        
         h2("6.2. Results and Analysis"),
         p(
-          "Quick analysis typically shows improved safety margin when sprinklers, fire doors, and smoke vents are combined; the mitigation narrative in computeMitigationComparison quantifies margin gain in seconds and casualty reduction. FDS runs produce device CSV series for visibility and temperature; ASET is estimated when visibility < 10 m or temperature > 60°C at the probe. AI Analyst consumes analysis.json and run.log to summarize findings for non-technical stakeholders."
+          "To avoid clipping and fit standard document layout margins, the quantitative metrics are divided into two distinct tables: Scenario Configurations (Table 6.1) and Performance Outcomes (Table 6.2)."
+        ),
+        p("Table 6.1 — Simulation Scenario Setup & Configurations:"),
+        table(
+          [
+            ["Run ID", "Scenario Name / Classification", "Active Safety Mitigations Installed"],
+            ["8ee3aaa1", "Baseline (Scenario 1)", "None (Unmitigated Baseline Control)"],
+            ["9ca65484", "Single (Scenario 2A)", "Sprinklers Only"],
+            ["678383ec", "Dual (Scenario 3A)", "Sprinklers, Smoke Vents"],
+            ["be143ae9", "Dual (Scenario 3A)", "Sprinklers, Smoke Vents"],
+            ["cbc849af", "Triple (Scenario 3B)", "Sprinklers, Smoke Vents, AI Signage"],
+            ["768ada18", "Quad (Scenario 3C)", "Sprinklers, Fire Doors, Vents, AI Signage"],
+            ["ecdebaec", "Quint (Scenario 4A)", "Sprinklers, Fire Doors, Vents, AI Signage, Wider Exits"],
+            ["950390a2", "Full (Scenario 4B)", "Sprinklers, Fire Doors, Vents, AI Signage, Wider, Pressurization"],
+            ["3c2e7753", "Full (Scenario 4B)", "Sprinklers, Fire Doors, Vents, AI Signage, Wider, Pressurization"]
+          ],
+          [1500, 2800, 5060]
+        ),
+        p("Table 6.2 — Quantitative Egress & Safety Results:"),
+        table(
+          [
+            ["Run ID", "ASET", "RSET", "Safety Margin (ASET - RSET)", "Casualties"],
+            ["8ee3aaa1", "70 s", "1133 s", "-1063 s", "27 / 60"],
+            ["9ca65484", "70 s", "1200 s", "-1130 s", "22 / 60"],
+            ["678383ec", "80 s", "1200 s", "-1120 s", "2 / 60"],
+            ["be143ae9", "80 s", "1200 s", "-1120 s", "6 / 60"],
+            ["cbc849af", "80 s", "1200 s", "-1120 s", "3 / 60"],
+            ["768ada18", "120 s", "1200 s", "-1080 s", "0 / 60"],
+            ["ecdebaec", "120 s", "1200 s", "-1080 s", "0 / 60"],
+            ["950390a2", "120 s", "1200 s", "-1080 s", "0 / 60"],
+            ["3c2e7753", "120 s", "1200 s", "-1080 s", "0 / 60"]
+          ],
+          [1500, 1800, 1800, 2260, 2000]
+        ),
+        p(
+          "Analysis indicates that single mitigations like sprinklers alone are insufficient if activation occurs after visibility has already degraded (ASET remains at 70s). Incorporating fire compartmentalization (fire doors) yields the most significant jump in ASET (increasing to 120s) by preventing smoke propagation, while AI Signage and wider exit routes smooth agent flow to eliminate bottlenecks and reduce casualties to 0."
         ),
 
         // --- Section 7 ---

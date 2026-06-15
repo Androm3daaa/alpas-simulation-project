@@ -1,5 +1,33 @@
 # ALPAS — School Fire & Evacuation Simulation
 
+> [!IMPORTANT]
+> **Grading / Quick Start Guide for Evaluation**
+>
+> To keep the submission package lightweight for email, the `node_modules` folders containing dependencies have been excluded from the zip file. Please follow these quick steps to install them and run the simulation:
+>
+> 1. **Install Node.js & Python dependencies**:
+>    Open your terminal in the extracted folder and run:
+>    ```bash
+>    # Install root & launcher runner
+>    npm install
+>
+>    # Install frontend packages
+>    cd frontend && npm install && cd ..
+>    ```
+> 2. **Install Python backend packages**:
+>    Ensure you have Python installed, then run:
+>    ```bash
+>    pip install fastapi uvicorn pydantic pandas httpx
+>    ```
+> 3. **Run the application**:
+>    Start both the frontend and backend concurrently from the root directory:
+>    ```bash
+>    npm run dev
+>    ```
+>    * Frontend: `http://localhost:5173`
+>    * Backend: `http://localhost:8000`
+
+
 **ALPAS** (Advanced Learning Platform for Assessing Safety) is a professional-grade fire and evacuation simulation platform for school buildings.
 
 > "To set free beyond fear and calamity"
