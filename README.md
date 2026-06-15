@@ -1,173 +1,92 @@
 # ALPAS — School Fire & Evacuation Simulation
 
-> [!IMPORTANT]
-> **Grading / Quick Start Guide for Evaluation**
->
-> To keep the submission package lightweight for email, the `node_modules` folders containing dependencies have been excluded from the zip file. Please follow these quick steps to install them and run the simulation:
->
-> 1. **Install Node.js & Python dependencies**:
->    Open your terminal in the extracted folder and run:
->    ```bash
->    # Install root & launcher runner
->    npm install
->
->    # Install frontend packages
->    cd frontend && npm install && cd ..
->    ```
-> 2. **Install Python backend packages**:
->    Ensure you have Python installed, then run:
->    ```bash
->    pip install fastapi uvicorn pydantic pandas httpx
->    ```
-> 3. **Run the application**:
->    Start both the frontend and backend concurrently from the root directory:
->    ```bash
->    npm run dev
->    ```
->    * Frontend: `http://localhost:5173`
->    * Backend: `http://localhost:8000`
+**ALPAS** (Advanced Learning Platform for Assessing Safety) is a professional-grade fire and evacuation simulation platform for academic institutions. It combines agent-based evacuation modeling, fire dynamics principles, and interactive 2D/3D visualization to help evaluate school building safety before emergencies occur.
 
-
-**ALPAS** (Advanced Learning Platform for Assessing Safety) is a professional-grade fire and evacuation simulation platform for school buildings.
-
-> "To set free beyond fear and calamity"
-
-It combines a fast in-browser analytical engine with high-fidelity NIST FDS + JuPedSim backend simulations, rich 2D/3D visualization, and an AI Analyst that can reason over run logs and metrics.
-
-## Features
-
-- **Dual-fidelity simulation**
-  - **Quick Analysis** (client-side): Deterministic t² fire growth + agent-based evacuation with full multi-floor school layout, mitigations (sprinklers, fire doors, vents, AI signage, pressurized stairs), ASET/RSET, safety margin, and casualty estimates. Runs instantly.
-  - **FDS + JuPedSim** (backend): Real CFD fire simulation (external `fds` binary) + microscopic pedestrian evacuation using JuPedSim.
-
-- **Interactive 3D Reference Model**
-  - High-quality school building GLB (imported from SketchUp) with floor filtering, X-ray mode, and synchronized replay from simulation runs.
-
-- **Rich Visualization & Analysis**
-  - Charts (HRR, visibility, temperature, CO, evacuation progress, congestion, mitigation comparison)
-  - 2D floor plan live stepping
-  - Run History with source badges (Quick vs FDS)
-
-- **AI Analyst**
-  - Chat with grounded answers using your simulation data + execution logs.
-  - Supports: DeepSeek (recommended), local Ollama (free & unlimited), Gemini, Groq, xAI/Grok.
-
-- **Mitigation Comparison**
-  - One-click before/after analysis of safety improvements (the app now starts with mitigations **off** by default for a clean baseline).
-
-## Project Structure
-
-```
-school-fire-sim/
-├── assets/                  # Source GLB
-├── backend/                 # FastAPI + FDS/JuPedSim orchestration + analysis
-│   ├── main.py
-│   ├── analysis.py
-│   └── .env.example
-├── frontend/                # React 19 + Vite + Three.js SPA
-│   ├── src/
-│   │   ├── lib/alpasEngine.js   # Core Quick simulation engine
-│   │   ├── components/
-│   │   └── ...
-│   └── package.json
-├── scripts/                 # Asset import pipeline (DAE → optimized GLB)
-├── simulations/             # Runtime artifacts (gitignored)
-└── docs/                    # Generated project documentation
-```
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- Python 3.10+
-- [NIST FDS](https://pages.nist.gov/fds-smv/) (for full backend runs)
-- JuPedSim (pip)
-- (Recommended) Ollama running locally for free AI Analyst
-
-### One-command development (recommended)
-
-From the project root, start **both** backend and frontend together:
-
-```bash
-npm run dev
-```
-
-- Backend logs appear prefixed in **blue**
-- Frontend (Vite) logs appear prefixed in **green**
-- Frontend will be available at **http://localhost:5173**
-- Press `Ctrl+C` to stop both servers at once
-
-This uses `concurrently` under the hood (installed at the root).
-
-### Manual start (if you prefer separate terminals)
-
-**Backend** (in one terminal):
-```bash
-cd backend
-python3 -m uvicorn main:app --reload --port 8000
-```
-
-**Frontend** (in another terminal):
-```bash
-cd frontend
-npm run dev
-```
-
-> The root `npm run dev` command is the easiest way during active development.
-
-### Environment
-
-Make sure you have a `backend/.env` file (copy from `backend/.env.example` and fill in your API keys, especially DeepSeek or run Ollama locally for the AI Analyst).
-
-### First Simulation
-
-1. Start the app with `npm run dev` (from project root).
-2. On the landing page, use the top navigation **"Get Started"** or **"Login"** buttons (or the big orange "Launch ALPAS Simulator" button) to reach the authentication screen.
-3. On the auth screen you can:
-   - Click the prominent **"Login as Admin (admin / admin)"** button for instant access, or
-   - Create a new account.
-4. Configure your scenario on the Dashboard (defaults: **slow** growth rate + **no mitigations** enabled).
-5. Run **Quick** analysis (instant) or trigger a full FDS + JuPedSim run.
-6. Explore results in charts, 3D, Run History, and talk to the AI Analyst.
-
-## Important Notes
-
-- The app now starts with **slow** fire growth and **no mitigations** enabled by default. This provides a clean baseline for comparing mitigation strategies.
-- Fire location now supports proper per-floor distinction (e.g. "Corridor · 3rd Floor" vs "Corridor · 2nd Floor").
-- The FDS backend currently uses simplified geometry (documented in every analysis). Full school walls/rooms/stairs are future work.
-- The 3D model is a reference/visual aid. Agent positions in 3D are mapped from the 2D analytical engine or JuPedSim results.
-
-## Asset Pipeline
-
-The school building model was imported from SketchUp (DAE) and optimized:
-
-```bash
-cd frontend
-npm run import-building          # or import-building-blend
-npm run prune-building
-```
-
-Requires `assimp` and `@gltf-transform/cli`.
-
-## Documentation
-
-See `docs/ALPAS_Project_Documentation.docx` (generated from the structured template in `scripts/generate-alpas-doc.js`).
-
-## Tech Stack
-
-- **Frontend**: React 19, Vite, Tailwind, React Three Fiber + Drei, Three.js, Chart.js, Framer Motion, Lucide icons
-- **Backend**: FastAPI, Pandas, JuPedSim + Shapely, subprocess FDS
-- **AI**: DeepSeek / Ollama / Gemini / Groq / xAI (pluggable, context-grounded)
-
-## Contributing
-
-This project was developed as part of academic/research work on fire safety simulation and AI-assisted analysis. Issues and PRs are welcome.
-
-## License
-
-Internal / academic use. Contact the authors for other licensing.
+> [!TIP]
+> **Quick Access for Evaluation**
+> - **Final Documentation:** [docs/Project-Documentation.ALPAS.pdf](docs/Project-Documentation.ALPAS.pdf)
+> - **Default Credentials:** Username: `admin` | Password: `admin`
 
 ---
 
-Built with care for better preparedness.
+## 📋 Evaluation Guide
+
+This guide is intended for instructors and evaluators to set up and run the ALPAS simulation environment locally.
+
+### 1. Prerequisites
+
+Ensure the following are installed on your system:
+- **Node.js (v18 or higher):** Required for the React frontend and project orchestration.
+- **Python (v3.10 or higher):** Required for the FastAPI backend and simulation processing.
+- **Modern Web Browser:** Chrome or Edge is recommended for optimal WebGL/3D performance.
+- *(Optional)* **Ollama:** If you wish to run the AI Analyst using local LLMs for free (unlimited tokens).
+
+### 2. Installation & Setup
+
+To keep the submission package lightweight, dependencies must be installed manually:
+
+#### A. Install Node.js Dependencies
+Open your terminal in the project root directory and run:
+```bash
+# Install root orchestration tools (concurrently)
+npm install
+
+# Install frontend application packages
+cd frontend && npm install && cd ..
+```
+
+#### B. Install Python Dependencies
+The backend requires several data processing and web framework libraries:
+```bash
+pip install fastapi uvicorn pydantic pandas httpx
+```
+
+### 3. Running the Simulation
+
+The easiest way to start the entire platform (Frontend + Backend) is using the root-level development command:
+
+```bash
+# From the project root directory
+npm run dev
+```
+
+- **Frontend:** [http://localhost:5173](http://localhost:5173)
+- **Backend API:** [http://localhost:8000](http://localhost:8000)
+
+**Note:** If you are running the backend separately, ensure it is on port `8000` as the frontend is configured to communicate with this specific endpoint.
+
+---
+
+## 🚀 Getting Started with the App
+
+1. **Launch:** Click "Launch ALPAS Simulator" or "Get Started" on the landing page.
+2. **Login:** Use the **"Login as Admin"** button for instant access.
+3. **Configure:** Use the **Scenario Sidebar** on the dashboard.
+   - *Default state:* Slow fire growth, 60 occupants, **No Mitigations** (baseline).
+4. **Execute:** 
+   - Click **"Run Quick Analysis"** for an instant deterministic result.
+   - Explore the **3D View** and **Run History** to see detailed metrics.
+5. **Analyze:** Use the **AI Analyst** (bottom right) to ask questions about the simulation results.
+
+---
+
+## 📂 Project Documentation
+
+Detailed project information, including model design, mathematical foundations, and experimental results, can be found in the `docs/` folder:
+
+- **📄 [Final Project Proposal (PDF)](docs/Project-Documentation.ALPAS.pdf):** The primary project documentation including objectives, methodology, and experimental results.
+- **📝 [ALPAS Project Documentation (DOCX)](docs/ALPAS_Project_Documentation.docx):** An editable version of the technical documentation generated from the project's internal scripts.
+- **📄 [Original Project Documentation (DOCX)](docs/ALPAS_Project_Documentation.docx):** Technical specifications and requirements.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** React 19 (Vite), Three.js (React Three Fiber), Tailwind CSS, Chart.js.
+- **Backend:** Python (FastAPI), Pandas (Data Analysis).
+- **Simulators:** `alpasEngine.js` (Analytical), NIST FDS & JuPedSim (Computational).
+- **AI Integration:** OpenAI, DeepSeek, and local Ollama support.
+
+---
+
+*Developed for the Polytechnic University of the Philippines — Parañaque City Campus as a DRRM Evacuation Planning System.*
